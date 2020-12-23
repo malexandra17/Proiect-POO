@@ -1,1 +1,358 @@
+#include<iostream>
+using namespace std;
+
+class coloana
+{private:
+	char* nume_coloana;
+	string tip;
+	int dimensiune;
+	string valoare_implicita;
+  
+public:
+	coloana()
+	{
+		 nume_coloana = nullptr;
+		tip="";
+		 dimensiune=0;
+
+	}
+	coloana(const char* nume_coloana, string tip, int dimensiune,string valoare_implicita)
+	{
+		this->nume_coloana = new char[strlen(nume_coloana  ) + 1];
+		strcpy_s(this->nume_coloana, strlen(nume_coloana) + 1, nume_coloana);
+		this->valoare_implicita = valoare_implicita;
+
+		this->dimensiune = dimensiune;
+		this->tip = tip;
+		
+	}
+	coloana(const coloana& c)
+	{
+
+		this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
+		strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
+		this->valoare_implicita = c.valoare_implicita;
+
+		this->dimensiune = c.dimensiune;
+		this->tip = c.tip;
+
+	}
+	~coloana()
+	{
+		if (nume_coloana != nullptr)
+			delete nume_coloana;
+	}
+	coloana& operator=(const coloana& c)
+	{
+		if (nume_coloana != nullptr)
+			delete nume_coloana;
+		this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
+		strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
+		this->valoare_implicita = c.valoare_implicita;
+
+		this->dimensiune = c.dimensiune;
+		this->tip = c.tip;
+		return *this;
+
+	}
+	string get_tip()
+		{
+		return tip;
+		}
+	string get_denumire_coloana()
+	{
+		return nume_coloana;
+	}
+	
+
+};
+template<typename T>
+class valori_coloana:public coloana
+{private:
+	int nr_valori;
+	T valoare_default;
+	T* valori;
+
+public:
+	void set_valoare(T valoare_default)
+	{
+		this->valoare_default = valoare_default;
+	}
+	void insert(T valoare)
+	{
+		T* copie = new T[nr_valori+1];
+		for (int i = 0;i < nr_valori;i++)
+			copie[i] = valori[i];
+		nr_valori++;
+		copie[nr_valori - 1] = valoare;
+		delete[] valori;
+		valori = new T[nr_valori];
+		for (int i = 0;i < nr_valori;i++)
+			valori[i] = copie[i];
+		delete[]copie;
+	}
+
+
+
+};
+
+class tabela
+{private:
+	string nume_tabela;
+	coloana* c;
+	
+	int nr_coloane;
+	
+public:
+	tabela()
+	{
+		nume_tabela = "";
+		c = nullptr;
+		nr_coloane = 0;
+	}
+	tabela(string nume_tabela,int nr_coloane,coloana* c)
+	{
+		this->nume_tabela = nume_tabela;
+		this->nr_coloane = nr_coloane;
+		this->c = new coloana[nr_coloane];
+		for (int i = 0;i < nr_coloane;i++)
+			this->c[i] = c[i];
+	}
+	tabela(string nume_tabel)
+	{
+		this->nume_tabela = nume_tabel;
+		c = nullptr;
+		nr_coloane = 0;
+	}
+	int get_nr_coloane()
+	{
+		return nr_coloane;
+	}
+	string get_nume_tabela()
+	{
+		return  nume_tabela;
+	}
+	tabela (const tabela& t)
+	{
+		nume_tabela = t.nume_tabela;
+		nr_coloane = t.nr_coloane;
+		c = new coloana[nr_coloane];
+		for (int i = 0;i < nr_coloane;i++)
+			c[i] = t.c[i];
+	}
+	~tabela()
+	{
+		if (c != nullptr)
+		{
+			delete[] c;
+		}
+
+	}
+	tabela& operator=(const tabela& t)
+	{
+		if (c != nullptr)
+		{
+			delete[] c;
+		}
+		nume_tabela = t.nume_tabela;
+		nr_coloane = t.nr_coloane;
+		c = new coloana[nr_coloane];
+		for (int i = 0;i < nr_coloane;i++)
+			c[i] = t.c[i];
+		return *this;
+	}
+	void adauga_coloana(coloana col_nou)
+	{
+		coloana* copie = new coloana[nr_coloane + 1];
+		for (int i = 0;i < nr_coloane;i++)
+			copie[i] = c[i];
+		copie[nr_coloane] = col_nou;
+		delete[] c;
+		c = nullptr;
+		nr_coloane++;
+		c = new coloana[nr_coloane];
+		for (int i = 0;i < nr_coloane;i++)
+			c[i] = copie[i];
+		delete[] copie;
+	}
+	string get_denumiri_coloane(int i)
+	{
+		return c[i].get_denumire_coloana();
+	}
+	
+};
+
+class baza_de_date
+{
+private:
+	int nr_tabele;
+	tabela* t;
+public:
+	baza_de_date()
+	{
+		nr_tabele = 0;
+		t = nullptr;
+	}
+	baza_de_date(const baza_de_date& b)
+	{
+		this->nr_tabele = b.nr_tabele;;
+		this->t = new tabela[nr_tabele];
+		for (int i = 0;i < nr_tabele;i++)
+			this->t[i] = b.t[i];
+	}
+	~baza_de_date()
+	{
+		if (t != nullptr)
+			delete t;
+
+	}
+	baza_de_date& operator=(const baza_de_date& b)
+	{
+		if (t != nullptr)
+			delete t;
+		this->nr_tabele = b.nr_tabele;;
+		this->t = new tabela[nr_tabele];
+		for (int i = 0;i < nr_tabele;i++)
+			this->t[i] = b.t[i];
+		return *this;
+	}
+
+	void adauga_tabela( tabela t1)
+	{
+		tabela* copie = new tabela[nr_tabele + 1];
+		for (int i = 0;i < nr_tabele;i++)
+			copie[i] = t[i];
+		copie[nr_tabele] = t1;
+		nr_tabele++;
+		delete[] t;
+		for (int i = 0;i < nr_tabele;i++)
+			t[i] = copie[i];
+		delete[] copie;
+
+
+	}
+	void stergere_tabela(string nume_tabela)
+	{
+		tabela* copie = new tabela[nr_tabele-1];
+		for (int i = 0;i < nr_tabele;i++)
+			if(t[i].get_nume_tabela()!=nume_tabela) copie[i] = t[i];
+		
+		nr_tabele--;
+		delete[] t;
+		for (int i = 0;i < nr_tabele;i++)
+			t[i] = copie[i];
+		delete[] copie;
+
+	}
+	int get_nr_tabele()
+	{
+		return nr_tabele;
+	}
+	string get_nume_tabela_i(int i)
+	{
+		return t[i].get_nume_tabela();
+	}
+	int get_nr_coloane_tabela_i(int i)
+	{
+		return t[i].get_nr_coloane();
+	}
+  string get_denumire_coloane_tabela_i(int i, int k)
+	{
+		return t[i].get_denumiri_coloane(k);
+	}
+
+
+};
+class comanda
+{
+	baza_de_date bd;
+	string c;
+};
+
+
+int main() 
+{
+	//CREATE TABEL STUDENTI ((NUME, TEXT, 30,ANONIM)),(VARSTA,INTGER,2,18))
+	baza_de_date bd;
+	string operatie;
+	string tabele;
+	string nume_tabela;
+	char c[30];
+	
+	char caracter;
+	
+	cin >> operatie;
+	if (operatie == "CREATE")
+	{
+		cin >> tabele;
+		cin >> nume_tabela;
+
+		tabela* t = new tabela(nume_tabela);
+		cin >> caracter;//spatiu
+		cin >> caracter;//prima paranteza
+		cin >> caracter;//a doua paranteza
+		char nume_coloana[50];
+		string tip;
+		int dimensiune;
+		string valoare_implicita;
+
+		while (caracter != ';')
+		{
+			if (caracter == '(')
+			{
+				cin >> caracter;
+				while (caracter != ')' && caracter != ',' && caracter != 32 && caracter != ')')
+				{
+					for (int n = 1;n <= 4;n++)
+					{
+						c[0] = '\0';
+						while (caracter != ',' && caracter != 32 && caracter != ')')
+						{
+							int i = 0;
+							c[i] = caracter;
+							c[i + 1] = '\0';
+							i++;
+							cin >> caracter;
+						}
+
+						cin >> caracter;//spatiu
+						cin >> caracter;
+						if (n == 1) strcpy_s(nume_coloana, strlen(c) + 1, c);
+						if (n == 2) tip = c;
+						if (n == 3) dimensiune = atoi(c);
+						if (n == 4) valoare_implicita = c;
+					}
+					coloana* col_nou= new coloana(nume_coloana, tip, dimensiune, valoare_implicita);
+					t->adauga_coloana(*col_nou);
+					delete col_nou;
+				}
+
+
+			}
+		}bd.adauga_tabela(*t);
+		delete t;
+	}
+	//DISPLAY TABLE table_name
+	if (operatie == "DISPLAY")
+	{
+		cin >> tabele;
+		cin >> nume_tabela;
+		for (int i = 0;i < bd.get_nr_tabele();i++)
+			if (bd.get_nume_tabela_i(i) == nume_tabela)
+				for (int k = 0;k < bd.get_nr_coloane_tabela_i(i);k++)
+					cout << bd.get_denumire_coloane_tabela_i(i, k) << " ";
+
+	}
+	//DROP TABEL TABLE_NAME
+	if (operatie == "DROP")
+	{
+		cin >> tabele;
+		cin >> nume_tabela;
+		for (int i = 0;i < bd.get_nr_tabele();i++)
+			if (bd.get_nume_tabela_i(i) == nume_tabela)
+				bd.stergere_tabela(nume_tabela);
+	}
+
+	
+}
 
