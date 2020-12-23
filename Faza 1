@@ -1,12 +1,12 @@
 #include<iostream>
 using namespace std;
-
+#include <string> 
 class coloana
 {private:
 	char* nume_coloana;
 	string tip;
 	int dimensiune;
-	string valoare_implicita;
+
   
 public:
 	coloana()
@@ -16,11 +16,11 @@ public:
 		 dimensiune=0;
 
 	}
-	coloana(const char* nume_coloana, string tip, int dimensiune,string valoare_implicita)
+	coloana(const char* nume_coloana, string tip, int dimensiune)
 	{
 		this->nume_coloana = new char[strlen(nume_coloana  ) + 1];
 		strcpy_s(this->nume_coloana, strlen(nume_coloana) + 1, nume_coloana);
-		this->valoare_implicita = valoare_implicita;
+		
 
 		this->dimensiune = dimensiune;
 		this->tip = tip;
@@ -31,7 +31,7 @@ public:
 
 		this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
 		strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
-		this->valoare_implicita = c.valoare_implicita;
+		
 
 		this->dimensiune = c.dimensiune;
 		this->tip = c.tip;
@@ -48,7 +48,7 @@ public:
 			delete nume_coloana;
 		this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
 		strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
-		this->valoare_implicita = c.valoare_implicita;
+		
 
 		this->dimensiune = c.dimensiune;
 		this->tip = c.tip;
@@ -74,6 +74,10 @@ class valori_coloana:public coloana
 	T* valori;
 
 public:
+	valori_coloana(T valoare_default)
+	{
+		this->valoare_default = valoare_default;
+	}
 	void set_valoare(T valoare_default)
 	{
 		this->valoare_default = valoare_default;
@@ -320,9 +324,16 @@ int main()
 						if (n == 1) strcpy_s(nume_coloana, strlen(c) + 1, c);
 						if (n == 2) tip = c;
 						if (n == 3) dimensiune = atoi(c);
+						
 						if (n == 4) valoare_implicita = c;
 					}
-					coloana* col_nou= new coloana(nume_coloana, tip, dimensiune, valoare_implicita);
+					coloana* col_nou= new coloana(nume_coloana, tip, dimensiune);
+					if (tip == "text")
+						valori_coloana<string>* val_col = new valori_coloana<string>(valoare_implicita);
+					if(tip=="intger")
+						valori_coloana<int>* val_col = new valori_coloana<int>(stoi(valoare_implicita));
+					else
+						valori_coloana<float>* val_col = new valori_coloana<float>(stof(valoare_implicita));
 					t->adauga_coloana(*col_nou);
 					delete col_nou;
 				}
@@ -355,4 +366,5 @@ int main()
 
 	
 }
+
 //sunt doar niste idei-- mai e mult de schimbat 
