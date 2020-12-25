@@ -1,7 +1,10 @@
-#include<iostream>
-#include <string> 
-using namespace std;
 
+	
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+
+#include <string>
+using namespace std;
 class coloana
 {private:
 	char* nume_coloana;
@@ -41,12 +44,12 @@ public:
 	~coloana()
 	{
 		if (nume_coloana != nullptr)
-			delete nume_coloana;
+			delete[] nume_coloana;
 	}
 	coloana& operator=(const coloana& c)
 	{
 		if (nume_coloana != nullptr)
-			delete nume_coloana;
+			delete[] nume_coloana;
 		this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
 		strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
 		
@@ -96,6 +99,10 @@ public:
 			valori[i] = copie[i];
 		delete[]copie;
 	}
+	int get_nr_valori()
+	{
+		return nr_valori;
+	}
 
 
 
@@ -105,7 +112,9 @@ class tabela
 {private:
 	string nume_tabela;
 	coloana* c;
-	
+	/*valori_coloana<int>* valori_int;
+	valori_coloana<string>* valori_string;
+	valori_coloana<float>* valori_float;*/
 	int nr_coloane;
 	
 public:
@@ -147,18 +156,19 @@ public:
 	}
 	~tabela()
 	{
-		if (c != nullptr)
-		{
-			delete[] c;
-		}
+		if(c!=nullptr)
+			    delete[] c;
+		
 
 	}
 	tabela& operator=(const tabela& t)
 	{
 		if (c != nullptr)
-		{
+		
 			delete[] c;
-		}
+	
+		
+		
 		nume_tabela = t.nume_tabela;
 		nr_coloane = t.nr_coloane;
 		c = new coloana[nr_coloane];
@@ -184,6 +194,18 @@ public:
 	{
 		return c[i].get_denumire_coloana();
 	}
+	void set_vectori_valori_coloana_i_int(valori_coloana <int>val_col)
+	{
+		
+	}
+	void set_vectori_valori_coloana_i_string(valori_coloana <string>val_col)
+	{
+
+	}
+	void set_vectori_valori_coloana_i_float(valori_coloana <float>val_col)
+	{
+
+	}
 	
 };
 
@@ -208,13 +230,13 @@ public:
 	~baza_de_date()
 	{
 		if (t != nullptr)
-			delete t;
+			delete[] t;
 
 	}
 	baza_de_date& operator=(const baza_de_date& b)
 	{
 		if (t != nullptr)
-			delete t;
+			delete[] t;
 		this->nr_tabele = b.nr_tabele;;
 		this->t = new tabela[nr_tabele];
 		for (int i = 0;i < nr_tabele;i++)
@@ -222,17 +244,30 @@ public:
 		return *this;
 	}
 
-	void adauga_tabela( tabela t1)
+	void adauga_tabela( tabela tab_nou)
 	{
-		tabela* copie = new tabela[nr_tabele + 1];
-		for (int i = 0;i < nr_tabele;i++)
-			copie[i] = t[i];
-		copie[nr_tabele] = t1;
-		nr_tabele++;
-		delete[] t;
-		for (int i = 0;i < nr_tabele;i++)
-			t[i] = copie[i];
-		delete[] copie;
+		if (t != nullptr)
+		{
+			tabela* copie_t = new tabela[nr_tabele + 1];
+			for (int i = 0;i < nr_tabele;i++)
+				copie_t[i] = t[i];
+
+			copie_t[nr_tabele] = tab_nou;
+
+			delete[] t;
+			t = nullptr;
+			nr_tabele++;
+			t = new tabela[nr_tabele];
+			
+			for (int i = 0;i < nr_tabele;i++)
+				t[i] = copie_t[i];
+			delete[] copie_t;
+		}
+		else {
+			t = new tabela[1];
+			t[0] = tab_nou;
+			nr_tabele++;
+		}
 
 
 	}
@@ -244,6 +279,7 @@ public:
 		
 		nr_tabele--;
 		delete[] t;
+		t = new tabela[nr_tabele];
 		for (int i = 0;i < nr_tabele;i++)
 			t[i] = copie[i];
 		delete[] copie;
@@ -277,78 +313,27 @@ class comanda
 
 int main() 
 {
-	//CREATE TABEL STUDENTI ((NUME, TEXT, 30,ANONIM)),(VARSTA,INTGER,2,18))
+
 	baza_de_date bd;
-	string operatie;
-	string tabele;
-	string nume_tabela;
-	char c[30];
+	//bd.adauga_tabela(t);
+	char comanda[200], sep[] = " ,)(;", *p, v[200][20];
+	int k=0;
+	cin.getline(comanda, 200);
+	p = strtok(comanda, sep);
 	
-	char caracter;
-	
-	cin >> operatie;
-	if (operatie == "CREATE")
+	while (p != NULL)
 	{
-		cin >> tabele;
-		cin >> nume_tabela;
-
-		tabela* t = new tabela(nume_tabela);
-		cin >> caracter;//spatiu
-		cin >> caracter;//prima paranteza
-		cin >> caracter;//a doua paranteza
-		char nume_coloana[50];
-		string tip;
-		int dimensiune;
-		string valoare_implicita;
-
-		while (caracter != ';')
-		{
-			if (caracter == '(')
-			{
-				cin >> caracter;
-				while (caracter != ')' && caracter != ',' && caracter != 32 && caracter != ')')
-				{
-					for (int n = 1;n <= 4;n++)
-					{
-						c[0] = '\0';
-						while (caracter != ',' && caracter != 32 && caracter != ')')
-						{
-							int i = 0;
-							c[i] = caracter;
-							c[i + 1] = '\0';
-							i++;
-							cin >> caracter;
-						}
-
-						cin >> caracter;//spatiu
-						cin >> caracter;
-						if (n == 1) strcpy_s(nume_coloana, strlen(c) + 1, c);
-						if (n == 2) tip = c;
-						if (n == 3) dimensiune = atoi(c);
-						
-						if (n == 4) valoare_implicita = c;
-					}
-					coloana* col_nou= new coloana(nume_coloana, tip, dimensiune);
-					if (tip == "text")
-						valori_coloana<string>* val_col = new valori_coloana<string>(valoare_implicita);
-					if(tip=="intger")
-						valori_coloana<int>* val_col = new valori_coloana<int>(stoi(valoare_implicita));
-					else
-						valori_coloana<float>* val_col = new valori_coloana<float>(stof(valoare_implicita));
-					t->adauga_coloana(*col_nou);
-					delete col_nou;
-				}
-
-
-			}
-		}bd.adauga_tabela(*t);
-		delete t;
+		strcpy_s(v[k++], strlen(p) + 1, p);
+		p = strtok(NULL, sep);
+		
 	}
+	
 	//DISPLAY TABLE table_name
-	if (operatie == "DISPLAY")
+	
+	if (strcmp(v[0],"DISPLAY")==0)
 	{
-		cin >> tabele;
-		cin >> nume_tabela;
+		string nume_tabela = v[2];
+		
 		for (int i = 0;i < bd.get_nr_tabele();i++)
 			if (bd.get_nume_tabela_i(i) == nume_tabela)
 				for (int k = 0;k < bd.get_nr_coloane_tabela_i(i);k++)
@@ -356,16 +341,39 @@ int main()
 
 	}
 	//DROP TABEL TABLE_NAME
-	if (operatie == "DROP")
+	if (strcmp(v[0], "DROP")==0)
 	{
-		cin >> tabele;
-		cin >> nume_tabela;
+		string nume_tabela=v[2];
 		for (int i = 0;i < bd.get_nr_tabele();i++)
 			if (bd.get_nume_tabela_i(i) == nume_tabela)
 				bd.stergere_tabela(nume_tabela);
+		cout << "tabela a fost stearsa";
+		cout << bd.get_nr_tabele();
+		
+	}
+	//create tabel
+	if (strcmp(v[0], "CREATE") == 0)
+	{
+		tabela* t = new tabela(v[2]);
+		for (int i = 3;i < k;i = i + 4)
+		{
+			coloana* col_nou = new coloana(v[i], v[i + 1], atoi(v[i + 2]));
+			if (strcmp(v[i + 1], "text") == 0)
+				valori_coloana<string>* val_col = new valori_coloana<string>(v[i + 3]);
+			if (strcmp(v[i + 1], "intger") == 0)
+				valori_coloana<int>* val_col = new valori_coloana<int>(atoi(v[i + 3]));
+			else
+				valori_coloana<float>* val_col = new valori_coloana<float>(atof(v[i + 3]));
+			t->adauga_coloana(*col_nou);
+			delete col_nou;
+		}
+		bd.adauga_tabela(*t);
+		
+		delete t;
 	}
 
 	
 }
+
 
 //sunt doar niste idei-- mai e mult de schimbat 
