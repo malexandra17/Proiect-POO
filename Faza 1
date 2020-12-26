@@ -1,5 +1,6 @@
 
 	
+
 #define _CRT_SECURE_NO_WARNINGS
 #include<iostream>
 
@@ -20,6 +21,12 @@ public:
 		 dimensiune=0;
 
 	}
+	coloana(const char* nume_coloana)
+	{
+		this->nume_coloana = new char[strlen(nume_coloana) + 1];
+		strcpy_s(this->nume_coloana, strlen(nume_coloana) + 1, nume_coloana);
+
+	}
 	coloana(const char* nume_coloana, string tip, int dimensiune)
 	{
 		this->nume_coloana = new char[strlen(nume_coloana  ) + 1];
@@ -32,9 +39,12 @@ public:
 	}
 	coloana(const coloana& c)
 	{
-
-		this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
-		strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
+		if (c.nume_coloana != nullptr)
+		{
+			this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
+			strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
+		}
+		else nume_coloana = nullptr;
 		
 
 		this->dimensiune = c.dimensiune;
@@ -50,8 +60,12 @@ public:
 	{
 		if (nume_coloana != nullptr)
 			delete[] nume_coloana;
-		this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
-		strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
+		if (c.nume_coloana != nullptr)
+		{
+			this->nume_coloana = new char[strlen(c.nume_coloana) + 1];
+			strcpy_s(this->nume_coloana, strlen(c.nume_coloana) + 1, c.nume_coloana);
+		}
+		else nume_coloana = nullptr;
 		
 
 		this->dimensiune = c.dimensiune;
@@ -73,14 +87,23 @@ public:
 template<typename T>
 class valori_coloana:public coloana
 {private:
-	int nr_valori;
+	int nr_valori=0;
 	T valoare_default;
-	T* valori;
+	T* valori=nullptr;
 
 public:
-	valori_coloana(T valoare_default)
+	valori_coloana()
+	{
+		int nr_valori = 0;
+
+		T* valori = nullptr;
+
+	}
+	valori_coloana(T valoare_default,const char* nume):coloana(nume)
 	{
 		this->valoare_default = valoare_default;
+		this->valori=nullptr;
+		nr_valori = 0;
 	}
 	void set_valoare(T valoare_default)
 	{
@@ -91,8 +114,9 @@ public:
 		T* copie = new T[nr_valori+1];
 		for (int i = 0;i < nr_valori;i++)
 			copie[i] = valori[i];
+		
+		copie[nr_valori] = valoare;
 		nr_valori++;
-		copie[nr_valori - 1] = valoare;
 		delete[] valori;
 		valori = new T[nr_valori];
 		for (int i = 0;i < nr_valori;i++)
@@ -104,7 +128,46 @@ public:
 		return nr_valori;
 	}
 
+	valori_coloana(const  valori_coloana& c):coloana(c)
+	{
+		this->valoare_default = c.valoare_default;
+		this->nr_valori = c.nr_valori;
+		valori = new T[nr_valori];
+		if (c.valori != nullptr)
+		{
+			
+			for (int i = 0;i < c.nr_valori;i++)
+			this->valori[i] = c.valori[i];
+		}
+		else this->valori = nullptr;
+	}
+	~valori_coloana()
+	{
+		if (valori!= nullptr)
+			delete[] valori;
+	}
+	valori_coloana& operator=(const  valori_coloana& c)
+	{coloana::operator=(c);
+		if (valori!= nullptr&&nr_valori>0)
+			delete[] valori;
+		
+		this->valoare_default = c.valoare_default;
+		this->nr_valori = c.nr_valori;
+		valori = new T[nr_valori];
+		if (c.valori != nullptr)
+		{
+			for (int i = 0;i < c.nr_valori;i++)
+				this->valori[i] = c.valori[i];
+		}
+		else this->valori = nullptr;
+		return*this;
 
+	}
+	void set_valoare_default(T valoare_default)
+	{
+		this->valoare_default = valoare_default;
+	}
+	
 
 };
 
@@ -112,10 +175,13 @@ class tabela
 {private:
 	string nume_tabela;
 	coloana* c;
-	/*valori_coloana<int>* valori_int;
+	valori_coloana<int>* valori_int;
 	valori_coloana<string>* valori_string;
-	valori_coloana<float>* valori_float;*/
+	valori_coloana<float>* valori_float;
 	int nr_coloane;
+	int nr_valori_int;
+	int nr_valori_string;
+	int nr_valori_float;
 	
 public:
 	tabela()
@@ -124,19 +190,58 @@ public:
 		c = nullptr;
 		nr_coloane = 0;
 	}
-	tabela(string nume_tabela,int nr_coloane,coloana* c)
+	tabela(string nume_tabela,int nr_coloane,coloana* c, valori_coloana<int>* valori_int, valori_coloana<string>* valori_string, valori_coloana<float>* valori_float,int nr_valori_int,int nr_valori_string,int nr_valori_float)
 	{
 		this->nume_tabela = nume_tabela;
 		this->nr_coloane = nr_coloane;
 		this->c = new coloana[nr_coloane];
 		for (int i = 0;i < nr_coloane;i++)
 			this->c[i] = c[i];
+		if (valori_int != nullptr && nr_valori_int > 0)
+		{
+			this->nr_valori_int = nr_valori_int;
+			for (int i = 0;i < nr_valori_int;i++)
+				this->valori_int[i] = valori_int[i];
+		}
+		else {
+			this->valori_int= nullptr;
+			this->nr_valori_int = 0;
+			
+		}
+		if (valori_string != nullptr && nr_valori_string > 0)
+		{
+			this->nr_valori_string = nr_valori_string;
+			for (int i = 0;i < nr_valori_string;i++)
+				this->valori_string[i] = valori_string[i];
+		}
+		else {
+			this->valori_string = nullptr;
+			this->nr_valori_string = 0;
+
+		}
+		if (valori_float != nullptr && nr_valori_float > 0)
+		{
+			this->nr_valori_float = nr_valori_float;
+			for (int i = 0;i < nr_valori_float;i++)
+				this->valori_float[i] = valori_float[i];
+		}
+		else {
+			this->valori_float = nullptr;
+			this->nr_valori_float = 0;
+
+		}
 	}
 	tabela(string nume_tabel)
 	{
 		this->nume_tabela = nume_tabel;
 		c = nullptr;
 		nr_coloane = 0;
+		valori_int = nullptr;
+		valori_string = nullptr;
+		valori_float = nullptr;
+		nr_valori_int = 0;
+		nr_valori_string = 0;
+		nr_valori_float = 0;
 	}
 	int get_nr_coloane()
 	{
@@ -153,6 +258,42 @@ public:
 		c = new coloana[nr_coloane];
 		for (int i = 0;i < nr_coloane;i++)
 			c[i] = t.c[i];
+		if (t.valori_int != nullptr && t.nr_valori_int > 0)
+		{
+			valori_int = new valori_coloana<int>[t.nr_valori_int];
+			this->nr_valori_int = t.nr_valori_int;
+			for (int i = 0;i < t.nr_valori_int;i++)
+				this->valori_int[i] = t.valori_int[i];
+		}
+		else {
+			this->valori_int = nullptr;
+			this->nr_valori_int = 0;
+
+		}
+		if (t.valori_string != nullptr && t.nr_valori_string > 0)
+		{
+			valori_string = new valori_coloana<string>[t.nr_valori_string];
+			this->nr_valori_string = t.nr_valori_string;
+			for (int i = 0;i < t.nr_valori_string;i++)
+				this->valori_string[i] = t.valori_string[i];
+		}
+		else {
+			this->valori_string = nullptr;
+			this->nr_valori_string = 0;
+
+		}
+		if (t.valori_float != nullptr && t.nr_valori_float > 0)
+		{
+			valori_float = new valori_coloana<float>[t.nr_valori_float];
+			this->nr_valori_float = t.nr_valori_float;
+			for (int i = 0;i < t.nr_valori_float;i++)
+				this->valori_float[i] = t.valori_float[i];
+		}
+		else {
+			this->valori_float = nullptr;
+			this->nr_valori_float = 0;
+
+		}
 	}
 	~tabela()
 	{
@@ -174,6 +315,42 @@ public:
 		c = new coloana[nr_coloane];
 		for (int i = 0;i < nr_coloane;i++)
 			c[i] = t.c[i];
+		if (t.valori_int != nullptr && t.nr_valori_int > 0)
+		{
+			this->nr_valori_int = t.nr_valori_int;
+			valori_int = new valori_coloana<int>[t.nr_valori_int];
+			for (int i = 0;i < t.nr_valori_int;i++)
+				this->valori_int[i] = t.valori_int[i];
+		}
+		else {
+			this->valori_int = nullptr;
+			this->nr_valori_int = 0;
+
+		}
+		if (t.valori_string != nullptr && t.nr_valori_string > 0)
+		{
+			valori_string = new valori_coloana<string>[t.nr_valori_string];
+			this->nr_valori_string = t.nr_valori_string;
+			for (int i = 0;i < t.nr_valori_string;i++)
+				this->valori_string[i] = t.valori_string[i];
+		}
+		else {
+			this->valori_string = nullptr;
+			this->nr_valori_string = 0;
+
+		}
+		if (t.valori_float != nullptr && t.nr_valori_float > 0)
+		{
+			valori_float = new valori_coloana<float>[t.nr_valori_float];
+			this->nr_valori_float = t.nr_valori_float;
+			for (int i = 0;i < t.nr_valori_float;i++)
+				this->valori_float[i] = t.valori_float[i];
+		}
+		else {
+			this->valori_float = nullptr;
+			this->nr_valori_float = 0;
+
+		}
 		return *this;
 	}
 	void adauga_coloana(coloana col_nou)
@@ -190,23 +367,191 @@ public:
 			c[i] = copie[i];
 		delete[] copie;
 	}
+	
 	string get_denumiri_coloane(int i)
 	{
 		return c[i].get_denumire_coloana();
 	}
-	void set_vectori_valori_coloana_i_int(valori_coloana <int>val_col)
+	void adauga_coloana_int(valori_coloana <int>val_col)
 	{
 		
+		
+			valori_coloana<int>* copie = new valori_coloana<int>[nr_valori_int + 1];
+			for (int i = 0;i < nr_valori_int;i++)
+				copie[i] = valori_int[i];
+			copie[nr_valori_int] = val_col;
+			delete[] valori_int;
+			valori_int = nullptr;
+			nr_valori_int++;
+			valori_int = new valori_coloana<int>[nr_valori_int];
+			for (int i = 0;i < nr_valori_int;i++)
+				valori_int[i] = copie[i];
+			delete[] copie;
+		
+		
+		
 	}
-	void set_vectori_valori_coloana_i_string(valori_coloana <string>val_col)
+	void adauga_coloana_float(valori_coloana <float>val_col)
 	{
+		valori_coloana<float>* copie = new valori_coloana<float>[nr_valori_float + 1];
+		for (int i = 0;i < nr_valori_float;i++)
+			copie[i] = valori_float[i];
+		copie[nr_valori_float] = val_col;
+		delete[] valori_float;
+		valori_float = nullptr;
+		nr_valori_float++;
+		valori_float = new valori_coloana<float>[nr_valori_float];
+		for (int i = 0;i < nr_valori_float;i++)
+			valori_float[i] = copie[i];
+		delete[] copie;
 
 	}
-	void set_vectori_valori_coloana_i_float(valori_coloana <float>val_col)
+	void adauga_coloana_string(valori_coloana <string>val_col)
 	{
+		
+		
+			valori_coloana<string>* copie = new valori_coloana<string>[nr_valori_string + 1];
+			for (int i = 0;i < nr_valori_string;i++)
+				copie[i] = valori_string[i];
+			copie[nr_valori_string] = val_col;
+			delete[] valori_string;
+			valori_string = nullptr;
+			nr_valori_string++;
+			valori_string = new valori_coloana<string>[nr_valori_string];
+			for (int i = 0;i < nr_valori_string;i++)
+				valori_string[i] = copie[i];
+			delete[] copie;
+		
+
+	}
+	void sterge_coloana_int(string nume_coloana)
+	{
+	
+		valori_coloana<int>* copie = new valori_coloana<int>[nr_valori_int];
+		
+		for (int i = 0;i < nr_valori_int;i++)
+			if (nume_coloana != valori_int[i].get_denumire_coloana())	copie[i] = valori_int[i];
+				
+		
+		
+		delete[] valori_int;
+		valori_int = nullptr;
+		nr_valori_int--;
+		valori_int = new valori_coloana<int>[nr_valori_int];
+		for (int i = 0;i < nr_valori_int;i++)
+			valori_int[i] = copie[i];
+		delete[] copie;
+	}
+	void sterge_coloana_float(string nume_coloana)
+	{
+		valori_coloana<float>* copie = new valori_coloana<float>[nr_valori_float];
+		for (int i = 0;i < nr_valori_float;i++)
+			if (nume_coloana != valori_float[i].get_denumire_coloana()) copie[i] = valori_float[i];
+		
+		delete[] valori_float;
+		valori_float = nullptr;
+		nr_valori_float--;
+		valori_float = new valori_coloana<float>[nr_valori_float];
+		for (int i = 0;i < nr_valori_float;i++)
+			valori_float[i] = copie[i];
+		delete[] copie;
+	}
+	void sterge_coloana_string(string nume_coloana)
+	{
+		valori_coloana<string>* copie = new valori_coloana<string>[nr_valori_string];
+		for (int i = 0;i < nr_valori_string;i++)
+			if (nume_coloana != valori_string[i].get_denumire_coloana())	copie[i] = valori_string[i];
+		
+		delete[] valori_string;
+		valori_string = nullptr;
+		nr_valori_string--;
+		valori_string = new valori_coloana<string>[nr_valori_string];
+		for (int i = 0;i < nr_valori_string;i++)
+			valori_string[i] = copie[i];
+		delete[] copie;
+
+	}
+
+	string get_tipul_coloana(int k)
+	{
+		return c[k].get_tip();
 
 	}
 	
+	void adauga_valoare_la_coloana_int(int k,int val)
+	{
+		
+		valori_coloana<int>* copie = new valori_coloana<int>[nr_valori_int];
+		for (int i = 0;i < nr_valori_int;i++)
+		{
+			if (i == k) valori_int[k].insert(val);
+				copie[i] = valori_int[i];
+		}
+		
+		delete[] valori_int;
+		valori_int = nullptr;
+		valori_int = new valori_coloana<int>[nr_valori_int];
+		for (int i = 0;i < nr_valori_int;i++)
+			valori_int[i] = copie[i];
+		delete[] copie;
+	}
+		void adauga_valoare_la_coloana_string(int k,string val)
+		{
+			valori_string[k].insert(val);
+			valori_coloana<float>* copie = new valori_coloana<float>[nr_valori_float];
+			for (int i = 0;i < nr_valori_float;i++)
+				copie[i] = valori_float[i];
+			
+			delete[] valori_float;
+			valori_float = nullptr;
+			
+			valori_float = new valori_coloana<float>[nr_valori_float];
+			for (int i = 0;i < nr_valori_float;i++)
+				valori_float[i] = copie[i];
+			delete[] copie;
+		}
+		void adauga_valoare_la_coloana_float(int k,float val)
+
+		{
+			valori_float[k].insert(val);
+			valori_coloana<string>* copie = new valori_coloana<string>[nr_valori_string];
+			for (int i = 0;i < nr_valori_string;i++)
+				copie[i] = valori_string[i];
+		
+			delete[] valori_string;
+			valori_string = nullptr;
+		
+			valori_string = new valori_coloana<string>[nr_valori_string];
+			for (int i = 0;i < nr_valori_string;i++)
+				valori_string[i] = copie[i];
+			delete[] copie;
+		}
+		int get_nr_coloane_int()
+		{
+			return nr_valori_int;
+		}
+			int get_nr_coloane_float()
+			{
+				return nr_valori_float;
+			}
+			int get_nr_coloane_string()
+			{
+				return nr_valori_string;
+			}
+			string get_denumire_col_val_int(int k)
+			{
+				return valori_int[k].get_denumire_coloana();
+			}
+			string get_denumire_col_val_string(int k)
+			{
+				return valori_string[k].get_denumire_coloana();
+			}
+			string get_denumire_col_val_float(int k)
+			{
+				return valori_float[k].get_denumire_coloana();
+			}
+			
+
 };
 
 class baza_de_date
@@ -301,8 +646,80 @@ public:
 	{
 		return t[i].get_denumiri_coloane(k);
 	}
+ 
+  string get_tipul_coloana_tabela(int i, int k)
+  {
+	  return t[i].get_tipul_coloana(k);
+	  tabela* copie_t = new tabela[nr_tabele];
+	  for (int i = 0;i < nr_tabele;i++)
+		  copie_t[i] = t[i];
+
+	  delete[] t;
+	  t = nullptr;
+	
+	  t = new tabela[nr_tabele];
+
+	  for (int i = 0;i < nr_tabele;i++)
+		  t[i] = copie_t[i];
+	  delete[] copie_t;
+  }
+  void adauga_val_int_tabela(int l, int k, int val)
+  {
+	  tabela copie = t[l];
+	  copie.adauga_valoare_la_coloana_int(k, val);
+	  t[l] = copie;
 
 
+  }
+  void adauga_val_string_tabela(int i, int k, string val)
+  {
+	  t[i].adauga_valoare_la_coloana_string(k, val);
+	  
+	  tabela* copie_t = new tabela[nr_tabele];
+	  for (int i = 0;i < nr_tabele;i++)
+		  copie_t[i] = t[i];
+
+	  delete[] t;
+	  t = nullptr;
+
+	  t = new tabela[nr_tabele];
+
+	  for (int i = 0;i < nr_tabele;i++)
+		  t[i] = copie_t[i];
+	  delete[] copie_t;
+	  }
+  void adauga_val_float_tabela(int i, int k, float val)
+  {
+	  t[i].adauga_valoare_la_coloana_float(k, val);
+
+	  }
+  int get_nr_coloane_int_tabela(int i)
+  {
+	  return t[i].get_nr_coloane_int();
+  }
+  int get_nr_colaone_float_tabela(int i)
+  {
+	  return t[i].get_nr_coloane_float();
+
+	  }
+  int get_nr_coloane_string_tabela(int i)
+  {
+	  return t[i].get_nr_coloane_string();
+	  }
+
+  string get_denumire_coloana_k_i(int i,int  k)
+  {
+	  return t[i].get_denumiri_coloane(k);
+  }
+  void sterge_coloana_din_tabela_i(int i,int k, string nume)
+  {
+	
+	  if (t[i].get_tipul_coloana(k) == "integer")  t[i].sterge_coloana_int(nume);
+	  else if (t[i].get_tipul_coloana(k) == "text") t[i].sterge_coloana_string(nume);
+	  else t[i].sterge_coloana_float(nume);
+	
+	  
+  }
 };
 class comanda
 {
@@ -315,8 +732,43 @@ int main()
 {
 
 	baza_de_date bd;
-	//bd.adauga_tabela(t);
-	char comanda[200], sep[] = " ,)(;", *p, v[200][20];
+	coloana c1("nume", "text", 20);
+	coloana c2("varsta", "integer", 2);
+	coloana c7("organizatie", "text", 20);
+	tabela t("student");
+	tabela t1("voluntar");
+	t.adauga_coloana(c1);
+	t.adauga_coloana(c2);
+	t1.adauga_coloana(c1);
+	t1.adauga_coloana(c2);
+	t1.adauga_coloana(c7);
+	valori_coloana<string> c3("Aninim","nume");
+	valori_coloana<int> c4(18,"varsta");
+	valori_coloana<string>c8("sisc", "organizatie");
+
+	c4.insert(5);
+	c4.insert(6);
+	c4.insert(7);
+	c3.insert("Roxana");
+	c3.insert("dan");
+	c8.insert("sisc");
+	c8.insert("boss");
+	t.adauga_coloana_int(c4);
+	t.adauga_coloana_string(c3);
+	t1.adauga_coloana_int(c4);
+	t1.adauga_coloana_string(c3);
+	t1.adauga_coloana_string(c8);
+	t.adauga_valoare_la_coloana_int(0, 8);
+	t.adauga_valoare_la_coloana_int(0, 9);
+	t.adauga_valoare_la_coloana_string(0, "gica");
+
+	bd.adauga_tabela(t);
+	bd.adauga_tabela(t1);
+	bd.adauga_val_int_tabela(0,0,10);
+	bd.adauga_val_int_tabela(0, 0, 2);
+	bd.adauga_val_string_tabela(0, 0, "petru");
+	
+	char comanda[200], sep[] = " ,)(;=", *p, v[200][20];
 	int k=0;
 	cin.getline(comanda, 200);
 	p = strtok(comanda, sep);
@@ -359,21 +811,122 @@ int main()
 		{
 			coloana* col_nou = new coloana(v[i], v[i + 1], atoi(v[i + 2]));
 			if (strcmp(v[i + 1], "text") == 0)
-				valori_coloana<string>* val_col = new valori_coloana<string>(v[i + 3]);
-			if (strcmp(v[i + 1], "intger") == 0)
-				valori_coloana<int>* val_col = new valori_coloana<int>(atoi(v[i + 3]));
+			{
+				valori_coloana<string>* val_col = new valori_coloana<string>(v[i + 3],v[i]);
+				
+				t->adauga_coloana_string(*val_col);
+				delete val_col;
+			}
+			if (strcmp(v[i + 1], "integer") == 0)
+			{
+				valori_coloana<int>* val_col = new valori_coloana<int>(atoi(v[i + 3]),v[i]);
+				
+				t->adauga_coloana_int(*val_col);
+				delete val_col;
+			}
 			else
-				valori_coloana<float>* val_col = new valori_coloana<float>(atof(v[i + 3]));
+			{
+				valori_coloana<float>* val_col = new valori_coloana<float>(atof(v[i + 3]),v[i]);
+				
+				t->adauga_coloana(*val_col);
+				delete val_col;
+			}
 			t->adauga_coloana(*col_nou);
 			delete col_nou;
+			
 		}
 		bd.adauga_tabela(*t);
 		
 		delete t;
 	}
-
+	int nr_cuvinte = k;
+	//insert INSERT INTO nume_tabela VALUES(...)
+	if (strcmp(v[0], "INSERT") == 0)
+	{
+		int nr_coloane_int_adaugate = 0;
+		int nr_coloane_float_adaugate = 0;
+		int nr_coloane_string_adaugate = 0;
+		int nr_val = 4;
 	
+	
+		string nume_tabela = v[2];
+		cout << nume_tabela;
+		for (int i = 0;i < bd.get_nr_tabele();i++)
+			if (bd.get_nume_tabela_i(i) == nume_tabela)
+			{
+				
+				for (int k = 0;k < bd.get_nr_coloane_tabela_i(i);k++)
+				{
+					
+					if (bd.get_tipul_coloana_tabela(i, k) == "integer")
+					{
+						bd.adauga_val_int_tabela(i, nr_coloane_int_adaugate, atoi(v[nr_val]));
+						nr_coloane_int_adaugate++;
+						
+					nr_val++;
+						
+
+					}
+					else if (bd.get_tipul_coloana_tabela(i, k) == "text")
+					{
+						bd.adauga_val_string_tabela(i, nr_coloane_string_adaugate, v[nr_val]);
+						nr_coloane_string_adaugate++;
+						
+					nr_val++;
+					}
+					else
+					{
+						bd.adauga_val_float_tabela(i, nr_coloane_float_adaugate, atof(v[nr_val]));
+						nr_coloane_float_adaugate++;
+						nr_val++;
+					}
+
+				}
+				
+			}
+
+	}
+
+	//select
+	if (strcmp(v[0], "INSERT") == 0)
+	{
+		if(strcmp(v[1],"ALL")==0)
+			
+		for (int i = 0;i < bd.get_nr_tabele();i++)
+			if (bd.get_nume_tabela_i(i) == v[3])
+			{
+				for (int k = 0;k < bd.get_nr_coloane_tabela_i(i);k++)
+				{
+
+				}
+			}
+	}
+	
+//delete DELETE FROM nume_tabela WHERE nume_coloană = valoare
+	if (strcmp(v[0], "DELETE") == 0)
+	{
+		int ok = 0;
+
+			for (int i = 0;i < bd.get_nr_tabele();i++)
+				if (bd.get_nume_tabela_i(i) == v[2])
+				{
+					
+					for (int k = 0;k < bd.get_nr_coloane_tabela_i(i);k++)
+					{
+						
+						if (bd.get_denumire_coloana_k_i(i, k) == v[5])
+						{
+							
+							bd.sterge_coloana_din_tabela_i(i, k, v[5]);
+						}
+					}
+				}
+	}
+	
+	
+
 }
+
 
 
 //sunt doar niste idei-- mai e mult de schimbat 
