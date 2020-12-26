@@ -167,7 +167,19 @@ public:
 	{
 		this->valoare_default = valoare_default;
 	}
-	
+	void sterge()
+	{
+		
+		T* copie = new T[nr_valori];
+		for (int i = 0;i < nr_valori;i++)
+			copie[i] = valoare_default;
+		delete[] valori;
+		valori = nullptr;
+		valori = new T[nr_valori];
+		for (int i = 0;i < nr_valori;i++)
+			valori[i] = copie[i];
+		delete[]copie;
+	}
 
 };
 
@@ -430,13 +442,14 @@ public:
 		valori_coloana<int>* copie = new valori_coloana<int>[nr_valori_int];
 		
 		for (int i = 0;i < nr_valori_int;i++)
-			if (nume_coloana != valori_int[i].get_denumire_coloana())	copie[i] = valori_int[i];
-				
-		
-		
+		{
+			if (nume_coloana == valori_int[i].get_denumire_coloana())
+				valori_int[i].sterge();
+copie[i] = valori_int[i];
+		}
 		delete[] valori_int;
 		valori_int = nullptr;
-		nr_valori_int--;
+		
 		valori_int = new valori_coloana<int>[nr_valori_int];
 		for (int i = 0;i < nr_valori_int;i++)
 			valori_int[i] = copie[i];
@@ -446,11 +459,14 @@ public:
 	{
 		valori_coloana<float>* copie = new valori_coloana<float>[nr_valori_float];
 		for (int i = 0;i < nr_valori_float;i++)
-			if (nume_coloana != valori_float[i].get_denumire_coloana()) copie[i] = valori_float[i];
-		
+		{
+			if (nume_coloana == valori_float[i].get_denumire_coloana())
+				valori_float[i].sterge();
+				copie[i] = valori_float[i];
+		}
 		delete[] valori_float;
 		valori_float = nullptr;
-		nr_valori_float--;
+		
 		valori_float = new valori_coloana<float>[nr_valori_float];
 		for (int i = 0;i < nr_valori_float;i++)
 			valori_float[i] = copie[i];
@@ -460,11 +476,14 @@ public:
 	{
 		valori_coloana<string>* copie = new valori_coloana<string>[nr_valori_string];
 		for (int i = 0;i < nr_valori_string;i++)
-			if (nume_coloana != valori_string[i].get_denumire_coloana())	copie[i] = valori_string[i];
-		
+		{
+			if (nume_coloana == valori_string[i].get_denumire_coloana())
+				valori_string[i].sterge();
+				copie[i] = valori_string[i];
+		}
 		delete[] valori_string;
 		valori_string = nullptr;
-		nr_valori_string--;
+		
 		valori_string = new valori_coloana<string>[nr_valori_string];
 		for (int i = 0;i < nr_valori_string;i++)
 			valori_string[i] = copie[i];
@@ -926,7 +945,6 @@ int main()
 	
 
 }
-
 
 
 //sunt doar niste idei-- mai e mult de schimbat 
